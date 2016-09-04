@@ -49,11 +49,15 @@ class Player {
 
 	damage() {
 		if (this.invincible > 0) {
-			return;
+			return false;
 		}
 		game.push(new Blood(this.x, this.y));
 
 		this.invincible = 50;
+
+		sounds.playsound("ouch");
+		sounds.playsound("splash");
+		return true;
 	}
 
 	step() {

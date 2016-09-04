@@ -64,9 +64,11 @@ class Tyranosaurus {
 		if (game.player.x - this.x < 300) {
 			if (++this.biteTime > 4) {
 				this.biteTime = 0;
+				sounds.playsound("snap");
 			}
 			this.biteToggle = this.biteTime > 2;
-			game.player.damage();
+			if (game.player.damage()) {
+			}
 		}
 		else {
 			this.biteToggle = false;
@@ -94,8 +96,10 @@ class Liaoningopterus extends Unit {
 		}
 
 		if (game.player.isHit(this.x, this.y)) {
-			this.alive = false;
-			game.player.damage();
+			if (game.player.damage()) {
+				this.alive = false;
+				sounds.playsound("punch");
+			}
 		}
 	}
 
@@ -145,8 +149,10 @@ class Meteor extends Unit {
 		}
 
 		if (game.player.isHit(this.x, this.y)) {
-			this.destroy();
-			game.player.damage();
+			if (game.player.damage()) {
+				this.destroy();
+				sounds.playsound("punch");
+			}
 		}
 
 		this.x += this.vx;
@@ -185,6 +191,12 @@ class Lava {
 		this.x -= 5;
 		if (this.x < -this.width) {
 			this.x += this.width;
+		}
+
+		if (game.player.y < this.y - 20) {
+			if (game.player.damage()) {
+				sounds.playsound("hish");
+			}
 		}
 	}
 

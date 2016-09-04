@@ -124,6 +124,42 @@ class Blood extends Unit {
 	}
 }
 
+class Sounds {
+	ouch: HTMLAudioElement[];
+	snap: HTMLAudioElement[];
+	gr: HTMLAudioElement[];
+	splash: HTMLAudioElement[];
+	hish: HTMLAudioElement[];
+	punch: HTMLAudioElement[];
+
+	loadAll(name: string) {
+		let i = 1;
+		let s: HTMLAudioElement = null;
+		let array: HTMLAudioElement[] = [];
+
+		while ((s = <HTMLAudioElement> document.getElementById(name + i)) != null) {
+			array[i - 1] = s;
+			++i;
+		}
+		return array;
+	}
+
+	constructor() {
+		this.ouch = this.loadAll("ouch");
+		this.snap = this.loadAll("snap");
+		this.gr = this.loadAll("gr");
+		this.splash = this.loadAll("splash");
+		this.hish = this.loadAll("pys");
+		this.punch = this.loadAll("punch");
+	}
+
+	playsound(sound: string) {
+		let soundArray = <HTMLAudioElement[]>this[sound];
+		let s = soundArray[Math.floor(soundArray.length * Math.random())];
+		s.play();
+	}
+}
+
 
 class Game {
 	width = canvas.width;
@@ -234,9 +270,11 @@ class Game {
 };
 
 var game: Game;
+var sounds: Sounds;
 
 $(document).ready(function() {
 	game = new Game();
+	sounds = new Sounds();
 
 	setInterval(function() {
 		game.step();

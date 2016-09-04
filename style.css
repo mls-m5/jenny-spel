@@ -1,6 +1,6 @@
 
 html { 
-	background: url("dinoscape.svg") no-repeat center center fixed; 
+	background: black;
 	-webkit-background-size: cover;
 	-moz-background-size: cover;
 	-o-background-size: cover;
@@ -16,7 +16,9 @@ body {
 }
 
 canvas {
-	border: 1px white solid;
+	background: url("dinoscape.svg") no-repeat center center fixed; 
+	margin-left: 100px;
+	margin-right: auto;
 }
 
 /*hiding resource files*/
