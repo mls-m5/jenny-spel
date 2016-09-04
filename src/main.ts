@@ -1,5 +1,6 @@
 /// <reference path="jquery.d.ts" />
-
+/// <reference path="player.ts" />
+/// <reference path="enemies.ts" />
 
 var canvas = <HTMLCanvasElement>document.getElementById("canvas");
 
@@ -11,135 +12,6 @@ var keyCodes = Object.freeze({
 	space: 32
 });
 
-
-class Player {
-	x = 300;
-	y = 0;
-	vy = 0;
-	pillis  = <HTMLImageElement>document.getElementById("pillis");
-	width = 100;
-	height = 100;
-	lastDir = 0;
-	onGround = false;
-
-	draw() {
-		ctx.save();
-
-		ctx.translate(this.x, -this.y + game.height - this.height / 2);
-		if (this.onGround) {
-			ctx.rotate(Math.random() / 4);
-		}
-
-		ctx.drawImage(this.pillis, -this.width / 2, -this.height / 2, this.width, this.height);
-
-		ctx.restore();
-	}
-
-	step() {
-		this.onGround = false;
-		this.x -= 1;
-		if (this.x > 0) {
-			this.x += 10 * this.lastDir;
-		}
-		if (this.x < 200) {
-			this.x = 200;
-		}
-
-		this.y += this.vy;
-		this.vy -= 4;
-
-		if (this.y <= 0) {
-			this.y = 0;
-			this.onGround = true;
-			if (this.vy < 0) {
-				this.vy = 0;
-			}
-		}
-
-		let v = game.findVertical(this.x, this.y);
-		if (v !== null) {
-			this.y += v;
-			if (this.vy < 0) {
-				this.vy = 0;
-			}
-			this.onGround = true;
-		}
-	}
-
-	jump() {
-		this.vy = 40;
-	}
-
-	keyPress(key: number) {
-		console.log(key);
-		if (key == keyCodes.left || key == keyCodes.right) {
-			let dir: number;
-			if (key == keyCodes.left) {
-				dir = -1;
-			}
-			else {
-				dir = 1;
-			}
-			this.lastDir = dir;
-		}
-
-		if (key == keyCodes.space) {
-			if (this.onGround) {
-				this.jump();
-			}
-		}
-	}
-
-	keyup(key: number) {
-		if (key == keyCodes.left) {
-			if (this.lastDir == -1) {
-				this.lastDir = 0;
-			}
-		}
-		else if (key == keyCodes.right) {
-			if (this.lastDir == 1) {
-				this.lastDir = 0;
-			}
-		}
-	}
-
-}
-
-class Tyranosaurus {
-	x = -400;
-	y = 100;
-	angular = 0;
-	wait = 100;
-	img  = <HTMLImageElement>document.getElementById("dino");
-
-	width = 400;
-	height = 400;
-	draw() {
-
-		ctx.save();
-
-		ctx.translate(this.x + 100, this.y + 200 + Math.random() * 10);
-		ctx.rotate(Math.sin(this.angular)/ 4);
-
-		ctx.drawImage(this.img, -this.width / 2, -this.height / 2, this.width, this.height);
-
-		ctx.restore();
-	}
-
-	step() {
-		this.angular += .5;
-		if (this.wait > 0) {
-			this.wait -= 1;
-		}
-		else {
-			if (this.x < 0) {
-				this.x += 10;
-			}
-		}
-
-	}
-}
-
 class Ground {
 	img  = <HTMLImageElement>document.getElementById("ground1");
 	imgWidth = this.img.width;
@@ -149,7 +21,7 @@ class Ground {
 
 	}
 	width = 200;
-	height = 50;
+	height = 100;
 	draw() {
 		ctx.save();
 
@@ -168,9 +40,88 @@ class Ground {
 	}
 
 	step() {
-		this.x -= 5;
+		this.x -= game.scrollSpeed;
 	}
 
+}
+
+class Unit {
+	alive = true; //If the unit is to be removed next step
+	step() {
+
+	}
+
+	draw() {
+
+	}
+}
+
+class Smoke extends Unit {
+	imgs: HTMLImageElement[] = [];
+	img: HTMLImageElement;
+	imgIndex = 0;
+	time = 0;
+	size = 50;
+
+	constructor(public x: number, public y: number) {
+		super();
+		for (let i = 1; i <= 7; ++i) {
+			this.imgs[i] = <HTMLImageElement>document.getElementById("smoke" + i);
+		}
+		this.img = this.imgs[1];
+	}
+
+	draw() {
+		ctx.save();
+		ctx.translate(this.x, game.height - this.y);
+		ctx.drawImage(this.img, -this.size / 2, -this.size/2, this.size, this.size);
+		ctx.restore();
+	}
+
+	step() {
+		++this.time;
+		this.imgIndex = Math.floor(this.time / 2) + 1;
+		if (this.imgIndex > 7) {
+			this.imgIndex = 7;
+			this.alive = false;
+		}
+		this.img = this.imgs[this.imgIndex];
+	}
+}
+
+
+class Blood extends Unit {
+	imgs: HTMLImageElement[] = [];
+	img: HTMLImageElement;
+	imgIndex = 0;
+	size = 200;
+	opacity = 1;
+
+	constructor(public x: number, public y: number) {
+		super();
+		this.img = <HTMLImageElement>document.getElementById("blood" + Math.floor(Math.random() * 2.99 + 1));
+	}
+
+	draw() {
+		if (this.opacity <= 0) {
+			return;
+		}
+		ctx.save();
+		ctx.translate(this.x, game.height - this.y);
+		ctx.globalAlpha = this.opacity;
+		ctx.drawImage(this.img, -this.size / 2, -this.size/2, this.size, this.size);
+		ctx.globalAlpha = 1;
+		ctx.restore();
+	}
+
+	step() {
+		if (this.opacity <= 0) {
+			this.alive = false;
+		}
+		else {
+			this.opacity -= .08;
+		}
+	}
 }
 
 
@@ -180,11 +131,40 @@ class Game {
 	player = new Player();
 	dino = new Tyranosaurus();
 	ground: Ground[] = [];
+	lava = new Lava();
+	units: Unit[] = [];
+	nextMeteor = 0;
+	nextDino = 0;
+	scrollSpeed = 5;
 
 	constructor() {
-		for (let i = 0; i < 30; ++i) {
-			this.ground.push(new Ground(i * 300, Math.random() * 200));
+		while (this.checkGround()) {
+			//Just call the function untill it returns false
 		}
+		
+		this.push(new Smoke(200, 100));
+	}
+
+	checkGround() {
+		if (this.ground.length == 0 || this.ground[this.ground.length - 1].x < this.width) {
+			let x = 0;
+			if (this.ground.length > 0) {
+				x = this.ground[this.ground.length - 1].x + 300;
+			}
+			this.ground.push(new Ground(x, Math.random() * 200 + 80));
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	push(unit: Unit) {
+		this.units.push(unit);
+	}
+
+	pushFront(unit: Unit) {
+		this.units.unshift(unit);
 	}
 
 	draw() {
@@ -193,15 +173,42 @@ class Game {
 		for (let g of this.ground) {
 			g.draw();
 		}
+
 		this.dino.draw();
+		this.lava.draw();
+		for (let u of this.units) {
+			u.draw();
+		}
+	}
+
+	gameLogics() {
+		if (--this.nextMeteor < 0) {
+			this.nextMeteor = (50 + Math.random() * 50) / 5;
+			this.push(new Meteor(Math.random() * this.width, this.height + 100, Math.random() * 20 - 10));
+		}
+
+		if (--this.nextDino < 0) {
+			this.nextDino = (70 + Math.random() * 60) / 5;
+			this.push(new Liaoningopterus(Math.random() * 300 + this.width, Math.random() * 30 + this.height, Math.random()));
+		}
 	}
 
 	step() {
+		this.checkGround();
+		this.gameLogics();
 		for (let g of this.ground) {
 			g.step();
 		}
 		this.player.step();
 		this.dino.step();
+		this.lava.step();
+
+		for (let u of this.units) {
+			u.step();
+		}
+
+		//Remove dead objects
+		this.units = this.units.filter(function(u) {return u.alive});
 	}
 
 	keyPress(key: number) {
