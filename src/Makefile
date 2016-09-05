@@ -1,4 +1,4 @@
-files=main.js player.js enemies.js
+files=main.js game.js menu.js player.js enemies.js
 
 all: ${files}
 	cat $(files) > app.js

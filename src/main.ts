@@ -1,6 +1,8 @@
 /// <reference path="jquery.d.ts" />
 /// <reference path="player.ts" />
 /// <reference path="enemies.ts" />
+/// <reference path="game.ts" />
+
 
 var canvas = <HTMLCanvasElement>document.getElementById("canvas");
 
@@ -16,6 +18,7 @@ class Ground {
 	img  = <HTMLImageElement>document.getElementById("ground1");
 	imgWidth = this.img.width;
 	imgHeight = this.img.height;
+	alive = true;
 
 	constructor(public x: number, public y: number) {
 
@@ -26,7 +29,6 @@ class Ground {
 		ctx.save();
 
 		ctx.translate(this.x, -this.y + game.height);
-		// ctx.fillRect(0, 0, this.width, this.height);
 		ctx.drawImage(this.img, 0, 0, this.width, this.height);
 
 		ctx.restore();
@@ -41,6 +43,9 @@ class Ground {
 
 	step() {
 		this.x -= game.scrollSpeed;
+		if (this.x < -this.width) {
+			this.alive = false;
+		}
 	}
 
 }
@@ -160,114 +165,93 @@ class Sounds {
 	}
 }
 
+class Level {
+	tyranosaurus = false;
+	lava = true;
+	scrollSpeed = 4;
+	meteors = false;
+	liaoningopterus = false;
+	enemyMultiplier = 2;
+	length = 500;
+	house = false;
+	lastLevel = false;
+}
 
-class Game {
-	width = canvas.width;
-	height = canvas.height;
-	player = new Player();
-	dino = new Tyranosaurus();
-	ground: Ground[] = [];
-	lava = new Lava();
-	units: Unit[] = [];
-	nextMeteor = 0;
-	nextDino = 0;
-	scrollSpeed = 5;
+class Level1 extends Level{
+	//Just inherit the standard level
+}
 
-	constructor() {
-		while (this.checkGround()) {
-			//Just call the function untill it returns false
-		}
-		
-		this.push(new Smoke(200, 100));
-	}
+class Level2 extends Level1 {
+	scrollSpeed = 7;
+	tyranosaurus = true;
+	length = 1000;
+}
 
-	checkGround() {
-		if (this.ground.length == 0 || this.ground[this.ground.length - 1].x < this.width) {
-			let x = 0;
-			if (this.ground.length > 0) {
-				x = this.ground[this.ground.length - 1].x + 300;
-			}
-			this.ground.push(new Ground(x, Math.random() * 200 + 80));
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
+class Level3 extends Level2 {
+	liaoningopterus = true;
+	lava = false;
+}
 
-	push(unit: Unit) {
-		this.units.push(unit);
-	}
+class Level4 extends Level3 {
+	meteors = true;
+}
 
-	pushFront(unit: Unit) {
-		this.units.unshift(unit);
+class Level5 extends Level4 {
+	lava = true;
+}
+class Level6 extends Level5 {
+	enemyMultiplier = 5;
+}
+class Level7 extends Level6 {
+	tyranosaurus = false;
+	lava = false;
+	scrollSpeed = 4;
+	meteors = false;
+	liaoningopterus = false;
+	enemyMultiplier = 2;
+	length = 500;
+	house = true;
+	lastLevel = true;
+}
+
+var levels = [
+	new Level1(),
+	new Level2(),
+	new Level3(),
+	new Level4(),
+	new Level5(),
+	new Level6(),
+	new Level7()
+]
+
+class House extends Unit{
+	y = 0;
+	img  = <HTMLImageElement>document.getElementById("hus");
+	width = this.img.width / 2;
+	height = this.img.height / 2;
+
+	constructor(public x: number) {
+		super();
 	}
 
 	draw() {
-		ctx.clearRect(0, 0, this.width, this.height);
-		this.player.draw();
-		for (let g of this.ground) {
-			g.draw();
-		}
+		ctx.save();
 
-		this.dino.draw();
-		this.lava.draw();
-		for (let u of this.units) {
-			u.draw();
-		}
-	}
+		ctx.translate(this.x, -this.y + game.height);
+		ctx.drawImage(this.img, 0, -this.height, this.width, this.height);
 
-	gameLogics() {
-		if (--this.nextMeteor < 0) {
-			this.nextMeteor = (50 + Math.random() * 50) / 5;
-			this.push(new Meteor(Math.random() * this.width, this.height + 100, Math.random() * 20 - 10));
-		}
-
-		if (--this.nextDino < 0) {
-			this.nextDino = (70 + Math.random() * 60) / 5;
-			this.push(new Liaoningopterus(Math.random() * 300 + this.width, Math.random() * 30 + this.height, Math.random()));
-		}
+		ctx.restore();
 	}
 
 	step() {
-		this.checkGround();
-		this.gameLogics();
-		for (let g of this.ground) {
-			g.step();
+		this.x -= game.scrollSpeed;
+		if (this.x < 100) {
+			game.scrollSpeed /= 1.1;
 		}
-		this.player.step();
-		this.dino.step();
-		this.lava.step();
-
-		for (let u of this.units) {
-			u.step();
-		}
-
-		//Remove dead objects
-		this.units = this.units.filter(function(u) {return u.alive});
 	}
 
-	keyPress(key: number) {
-		this.player.keyPress(key);
-	}
+}
 
-	keyup(key: number) {
-		this.player.keyup(key);
-	}
-
-	findVertical(x, y) {
-		let v = null;
-		for (let g of this.ground) {
-			let nv = g.findVertical(x, y);
-			if (nv != null) {
-				if (nv >= v) {
-					v = nv;
-				}
-			}
-		}
-		return v;
-	}
-};
 
 var game: Game;
 var sounds: Sounds;

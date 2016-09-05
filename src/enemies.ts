@@ -9,10 +9,10 @@ class Tyranosaurus {
 	x = -400;
 	y = 0;
 	angular = 0;
-	wait = 100;
 	img1  = <HTMLImageElement>document.getElementById("dino");
 	img2  = <HTMLImageElement>document.getElementById("dino-bite");
 	img = this.img1;
+	hide = true;
 
 	width = 400;
 	height = 400;
@@ -52,26 +52,28 @@ class Tyranosaurus {
 
 	step() {
 		this.angular += .5;
-		if (this.wait > 0) {
-			this.wait -= 1;
+		if (this.hide) {
+			if (this.x > -400) {
+				this.x -= game.scrollSpeed;
+			}
 		}
 		else {
 			if (this.x < 0) {
 				this.x += 10;
 			}
-		}
 
-		if (game.player.x - this.x < 300) {
-			if (++this.biteTime > 4) {
-				this.biteTime = 0;
-				sounds.playsound("snap");
+			if (game.player.x - this.x < 300) {
+				if (++this.biteTime > 4) {
+					this.biteTime = 0;
+					sounds.playsound("snap");
+				}
+				this.biteToggle = this.biteTime > 2;
+				if (game.player.damage()) {
+				}
 			}
-			this.biteToggle = this.biteTime > 2;
-			if (game.player.damage()) {
+			else {
+				this.biteToggle = false;
 			}
-		}
-		else {
-			this.biteToggle = false;
 		}
 	}
 }
@@ -176,19 +178,27 @@ class Meteor extends Unit {
 class Lava {
 	img  = <HTMLImageElement>document.getElementById("lava");
 	x = 0;
-	y = 0;
+	y = -50;
 	width = 200;
 	height = 50;
 	nextSmoke = 0;
+	hide = true;
 	step() {
-		if (--this.nextSmoke < 0) {
-			this.nextSmoke = 20;
-			game.push(new Smoke(Math.random() * game.width, 40));
+		if (!this.hide) {
+			if (this.y < 50) {
+				this.y += .5;
+			}
+			if (--this.nextSmoke < 0) {
+				this.nextSmoke = 20;
+				game.push(new Smoke(Math.random() * game.width, 40));
+			}
 		}
-		if (this.y < 50) {
-			++this.y;
+		else {
+			if (this.y > -50) {
+				this.y -= .5;
+			}
 		}
-		this.x -= 5;
+		this.x -= game.scrollSpeed;
 		if (this.x < -this.width) {
 			this.x += this.width;
 		}
