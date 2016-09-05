@@ -15,10 +15,17 @@ body {
 	padding: 0px;
 }
 
+.canvas_container {
+	text-align: center;
+	height: 100%;
+}
+
+.canvas_side {
+	height: 100%;
+}
 canvas {
 	background: url("dinoscape.svg") no-repeat center center fixed; 
-	margin-left: 100px;
-	margin-right: auto;
+	display: inline;
 }
 
 /*hiding resource files*/

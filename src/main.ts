@@ -175,32 +175,39 @@ class Level {
 	length = 500;
 	house = false;
 	lastLevel = false;
+	text = "";
 }
 
 class Level1 extends Level{
 	//Just inherit the standard level
+	text = "Hej! Och välkommen på kalas! Förresten se upp för lavan i trädgården den kan vara lite varm så här dags";
 }
 
 class Level2 extends Level1 {
 	scrollSpeed = 7;
 	tyranosaurus = true;
 	length = 1000;
+	text = "Oj! Jag glömde att berätta, jag släppte ut Dino idag, han kan gilla att leka, säkert inget farligt, ehe";
 }
 
 class Level3 extends Level2 {
 	liaoningopterus = true;
 	lava = false;
+	text = "Just tusan, mina flygödlor har smitit...";
 }
 
 class Level4 extends Level3 {
 	meteors = true;
+	text = "Typiskt, just när man har samlat ihop ett gäng fina dinosaurier så blir det meteoritregn...";
 }
 
 class Level5 extends Level4 {
 	lava = true;
+	text = "Hej! Hur går det? Vi börjar snart med maten";
 }
 class Level6 extends Level5 {
 	enemyMultiplier = 5;
+	text = "Jag kan se dig härifrån, det är bara en bit till";
 }
 class Level7 extends Level6 {
 	tyranosaurus = false;
@@ -212,6 +219,7 @@ class Level7 extends Level6 {
 	length = 500;
 	house = true;
 	lastLevel = true;
+	text = "Välkommen, du han precis i tid :)";
 }
 
 var levels = [
@@ -252,29 +260,50 @@ class House extends Unit{
 
 }
 
+class Display {
+	step() {
+
+	}
+
+	draw() {
+
+	}
+}
+
 
 var game: Game;
 var sounds: Sounds;
+var menu: Menu;
 
 $(document).ready(function() {
-	game = new Game();
+	menu = new Menu();
 	sounds = new Sounds();
 
 	setInterval(function() {
-		game.step();
-		game.draw();
+		if (game) {
+			game.step();
+			game.draw();
+		}
+		menu.draw();
 	}, 50);
 
 
 	$(document).keydown(function(e){
-		if (e.keyCode == keyCodes.left || e.keyCode == keyCodes.right || e.keyCode == keyCodes.space) {
-			game.keyPress(e.keyCode);
-			e.preventDefault();
+		if (game) {
+			if (e.keyCode == keyCodes.left || e.keyCode == keyCodes.right || e.keyCode == keyCodes.space) {
+				game.keyPress(e.keyCode);
+				e.preventDefault();
+			}
+		}
+		else {
+			menu.keyPress(e.keyCode);
 		}
 	});
 
 	$(document).keyup(function(e) {
-		game.keyup(e.keyCode);
+		if (game) {
+			game.keyup(e.keyCode);
+		}
 	})
 })
 

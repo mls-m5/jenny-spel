@@ -14,6 +14,7 @@ class Player {
 	onGround = false;
 	invincible = 0;
 	visible = true;
+	lives = 10;
 
 	draw() {
 		if (this.invincible > 0) {
@@ -57,6 +58,8 @@ class Player {
 
 		sounds.playsound("ouch");
 		sounds.playsound("splash");
+
+		this.lives -= 1;
 		return true;
 	}
 

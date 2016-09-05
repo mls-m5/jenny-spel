@@ -1,5 +1,115 @@
+/// <reference path="main.ts" />
+/// <reference path="enemies.ts" />
+/// <reference path="player.ts" />
+/// <reference path="menu.ts" />
 
-class Game {
+
+class Mobile {
+	imgs = [
+		<HTMLImageElement>document.getElementById("mobil1"),
+		<HTMLImageElement>document.getElementById("mobil2"),
+		<HTMLImageElement>document.getElementById("mobil3"),
+		<HTMLImageElement>document.getElementById("mobil4")
+	];
+	indexMap = [0, 1, 2, 1, 3, 1];
+	width = this.imgs[0].width / 5;
+	height = this.imgs[0].height / 5;
+	index = 0;
+	nextIndex = 0;
+	mobileText = "";
+	show = 200;
+	opacity = 1;
+
+	showText(txt: string) {
+		this.mobileText = txt;
+		this.show = 200;
+	}
+
+	draw() {
+		if (--this.nextIndex <= 0) {
+			this.nextIndex = 2;
+			if (++this.index >= this.indexMap.length) {
+				this.index = 0;
+			}
+		}
+		if (this.opacity > 0) {
+			ctx.globalAlpha = .8 * this.opacity;
+			ctx.fillStyle = "#FFFFFF";
+			ctx.fillRect(0,0, game.width, 50);
+			ctx.globalAlpha = this.opacity;
+			ctx.strokeStyle = "Black";
+			ctx.drawImage(this.imgs[this.indexMap[this.index]], 0, 0, this.width, this.height);
+			ctx.font = "12px sans-serif";
+			ctx.strokeText(this.mobileText, this.width + 10, 30);
+			ctx.globalAlpha = 1;
+		}
+	}
+
+	step() {
+		if (this.show > 0) {
+			--this.show;
+			this.opacity = 1;
+		}
+		else {
+			this.show = 0;
+
+			if (this.opacity > 0) {
+				this.opacity -= .1;
+			}
+			else {
+				this.opacity = 0;
+			}
+		}
+	}
+}
+
+class Grass {
+	img  = <HTMLImageElement>document.getElementById("grass");
+	x = 0;
+	y = 25;
+	width = this.img.width;
+	height = this.img.height;
+
+	step() {
+		this.x -= game.scrollSpeed;
+		if (this.x < -this.width) {
+			this.x += this.width;
+		}
+
+	}
+
+	draw() {
+		let repeatNum = Math.ceil(game.width / this.width) + 1;
+		ctx.save();
+		ctx.translate(this.x, game.height - this.y);
+		for (let i = 0; i < repeatNum; ++i) {
+			ctx.drawImage(this.img, +this.width * i, 0, this.width, this.height);
+		}
+		ctx.restore();
+	}
+
+}
+
+class LifeMeter {
+	img  = <HTMLImageElement>document.getElementById("egg");
+	x = 10;
+	y = 40;
+	width = 30;
+	height = this.width
+
+	draw() {
+		let repeatNum = game.player.lives;
+		ctx.save();
+		ctx.translate(this.x, game.height - this.y);
+		for (let i = 0; i < repeatNum; ++i) {
+			ctx.drawImage(this.img, +this.width * i, 0, this.width, this.height);
+		}
+		ctx.restore();
+	}
+}
+
+
+class Game extends Display {
 	width = canvas.width;
 	height = canvas.height;
 	player = new Player();
@@ -10,6 +120,10 @@ class Game {
 	nextMeteor = 0;
 	nextDino = 0;
 	scrollSpeed = 7;
+	mobile = new Mobile();
+	grass = new Grass();
+	lifeMeter = new LifeMeter();
+	dead_title = <HTMLImageElement> document.getElementById("dead_title");
 
 	level = -1;
 	currentLevel: Level;
@@ -18,6 +132,7 @@ class Game {
 	overlay = 1.;
 
 	constructor() {
+		super();
 		this.finishLevel();
 
 		while (this.checkGround()) {
@@ -73,9 +188,15 @@ class Game {
 			this.lava.step();
 		}
 
+		if (this.grass) {
+			this.grass.step();
+		}
+
 		for (let u of this.units) {
 			u.step();
 		}
+
+		this.mobile.step();
 
 		//Remove dead objects
 		this.units = this.units.filter(function(u) {return u.alive});
@@ -84,6 +205,7 @@ class Game {
 	draw() {
 		ctx.clearRect(0, 0, this.width, this.height);
 
+		this.grass.draw();
 		if (this.house) {
 			this.house.draw();
 		}
@@ -100,6 +222,10 @@ class Game {
 			u.draw();
 		}
 
+		this.lifeMeter.draw();
+
+		this.mobile.draw();
+
 		if (this.overlay) {
 			ctx.globalAlpha = this.overlay;
 			ctx.fillStyle = "black";
@@ -108,6 +234,9 @@ class Game {
 
 			ctx.globalAlpha = 1;
 
+			if (this.player.lives <= 0) {
+				ctx.drawImage(this.dead_title, 0, 0, this.width, this.height);
+			}
 		}
 	}
 
@@ -126,6 +255,7 @@ class Game {
 		if (this.currentLevel.house) {
 			this.house = new House(this.width * 2);
 		}
+		this.mobile.showText(this.currentLevel.text);
 	}
 
 	gameLogics() {
@@ -149,15 +279,27 @@ class Game {
 		}
 
 		if (!this.currentLevel.lastLevel) {
-			if (this.overlay > 0) {
-				this.overlay -= .01;
-				this.overlay = Math.max(0, this.overlay);
+			if (this.player.lives <= 0) {
+				this.overlay += .02;
+				this.overlay = Math.min(1, this.overlay);
+				if (this.overlay >= 1) {
+					game = null; //Restart from the menu
+				}
+			}
+			else {
+				if (this.overlay > 0) {
+					this.overlay -= .01;
+					this.overlay = Math.max(0, this.overlay);
+				}
 			}
 		}
 		else if (this.leftOnLevel <= 0) {
 			if (this.overlay < 1) {
 				this.overlay += .01;
 				this.overlay = Math.min(1, this.overlay);
+				if (this.overlay >= 1) {
+					game = null; //Restart from the menu
+				}
 			}
 		}
 	}
