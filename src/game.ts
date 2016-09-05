@@ -234,7 +234,7 @@ class Game extends Display {
 
 			ctx.globalAlpha = 1;
 
-			if (this.player.lives <= 0) {
+			if (!this.currentLevel.lastLevel && this.player.lives <= 0) {
 				ctx.drawImage(this.dead_title, 0, 0, this.width, this.height);
 			}
 		}
