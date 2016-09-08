@@ -136,6 +136,8 @@ class Sounds {
 	splash: HTMLAudioElement[];
 	hish: HTMLAudioElement[];
 	punch: HTMLAudioElement[];
+	steps: HTMLAudioElement[];
+	lava: HTMLAudioElement[];
 
 	loadAll(name: string) {
 		let i = 1;
@@ -156,12 +158,19 @@ class Sounds {
 		this.splash = this.loadAll("splash");
 		this.hish = this.loadAll("pys");
 		this.punch = this.loadAll("punch");
+		this.steps = this.loadAll("steps");
+		this.lava = this.loadAll("lava");
 	}
 
 	playsound(sound: string) {
 		let soundArray = <HTMLAudioElement[]>this[sound];
 		let s = soundArray[Math.floor(soundArray.length * Math.random())];
-		s.play();
+		if (s.paused) {
+			s.play();
+		}
+		else {
+			s.currentTime = 0;
+		}
 	}
 }
 

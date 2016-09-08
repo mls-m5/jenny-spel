@@ -246,6 +246,9 @@ class Game extends Display {
 		}
 		++this.level;
 		this.currentLevel = levels[this.level];
+		if (!this.dino.hide && !this.currentLevel.tyranosaurus) {
+			sounds.playsound("gr");
+		}
 		this.dino.hide = ! this.currentLevel.tyranosaurus;
 		this.nextMeteor = 100; //Delay when the next meteor is comming
 		this.nextDino = 100;

@@ -20,6 +20,8 @@ class Tyranosaurus {
 	biteToggle = false;
 	biteTime = 0;
 
+	nextGr = 0;
+
 
 	draw() {
 		if (this.biteToggle) {
@@ -52,6 +54,12 @@ class Tyranosaurus {
 
 	step() {
 		this.angular += .5;
+		if (this.angular > Math.PI * 2) {
+			this.angular -= Math.PI * 2;
+			if (!this.hide) {
+				sounds.playsound("steps");
+			}
+		}
 		if (this.hide) {
 			if (this.x > -400) {
 				this.x -= game.scrollSpeed;
@@ -62,7 +70,7 @@ class Tyranosaurus {
 				this.x += 10;
 			}
 
-			if (game.player.x - this.x < 300) {
+			if (game.player.x - this.x < 270) {
 				if (++this.biteTime > 4) {
 					this.biteTime = 0;
 					sounds.playsound("snap");
@@ -73,6 +81,11 @@ class Tyranosaurus {
 			}
 			else {
 				this.biteToggle = false;
+
+				if (--this.nextGr <=0) {
+					this.nextGr = 100 + Math.random() * 100;
+					sounds.playsound("gr");
+				}
 			}
 		}
 	}
@@ -138,6 +151,9 @@ class Meteor extends Unit {
 		let s = new Smoke(this.x + Math.random() * 10 - 5, this.y + Math.random() * 10 - 5)
 		s.size *= 3;
 		game.push(s);
+		if (this.x > 0 && this.x < game.width) {
+			sounds.playsound("punch");
+		}
 	}
 
 	step() {
@@ -153,7 +169,6 @@ class Meteor extends Unit {
 		if (game.player.isHit(this.x, this.y)) {
 			if (game.player.damage()) {
 				this.destroy();
-				sounds.playsound("punch");
 			}
 		}
 
@@ -189,8 +204,10 @@ class Lava {
 				this.y += .5;
 			}
 			if (--this.nextSmoke < 0) {
-				this.nextSmoke = 20;
+				this.nextSmoke = 50;
 				game.push(new Smoke(Math.random() * game.width, 40));
+
+				sounds.playsound("lava");
 			}
 		}
 		else {
