@@ -276,9 +276,14 @@ class Game extends Display {
 			}
 		}
 
-		--this.leftOnLevel;
-		if (this.leftOnLevel < 0) {
-			this.finishLevel();
+		if (this.player.lives > 0) {
+			--this.leftOnLevel;
+			if (this.leftOnLevel < 0) {
+				this.finishLevel();
+			}
+		}
+		else {
+			this.leftOnLevel = 10;
 		}
 
 		if (!this.currentLevel.lastLevel) {

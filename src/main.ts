@@ -196,16 +196,16 @@ class Level2 extends Level1 {
 	scrollSpeed = 7;
 	tyranosaurus = true;
 	length = 1000;
-	text = "Oj! Jag glömde att berätta, jag släppte ut Dino idag, han kan gilla att leka, säkert inget farligt, ehe";
+	text = "Oj! Jag glömde att berätta, jag släppte ut Dino idag, han kan gilla att leka, säkert inget farligt, hehe";
 }
 
 class Level3 extends Level2 {
 	liaoningopterus = true;
-	lava = false;
 	text = "Just tusan, mina flygödlor har smitit...";
 }
 
 class Level4 extends Level3 {
+	lava = false;
 	meteors = true;
 	text = "Typiskt, just när man har samlat ihop ett gäng fina dinosaurier så blir det meteoritregn...";
 }
